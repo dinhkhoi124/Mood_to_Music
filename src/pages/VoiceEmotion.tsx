@@ -65,6 +65,20 @@ const VoiceEmotion = () => {
     }
   };
 
+  const stopVoice = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      const stream = mediaRecorderRef.current.stream;
+      mediaRecorderRef.current.stop();
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      mediaRecorderRef.current = null;
+      audioChunksRef.current = [];
+      setIsRecording(false);
+      toast.info("Voice recording stopped");
+    }
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -168,24 +182,52 @@ const VoiceEmotion = () => {
               <div className="relative">
                 <Button
                   size="lg"
-                  className={`w-32 h-32 rounded-full transition-colors ${
-                    isRecording 
-                      ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                      : 'bg-green-500 hover:bg-green-600'
-                  }`}
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isAnalyzing}
+                  className="w-32 h-32 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
+                  onClick={startRecording}
+                  disabled={isAnalyzing || isRecording}
                 >
-                  {isAnalyzing ? (
-                    <Loader2 className="w-12 h-12 animate-spin text-white" />
-                  ) : isRecording ? (
-                    <Square className="w-12 h-12 text-white" />
-                  ) : (
-                    <Mic className="w-12 h-12 text-white" />
-                  )}
+                  <Mic className="w-12 h-12 text-white" />
                 </Button>
                 {isRecording && (
                   <div className="absolute -inset-2 rounded-full border-4 border-red-500 animate-ping" />
+                )}
+              </div>
+
+              <div className="flex gap-4">
+                {!isRecording ? (
+                  <Button size="lg" onClick={startRecording} disabled={isAnalyzing}>
+                    <Mic className="w-5 h-5 mr-2" />
+                    Start Recording
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      size="lg"
+                      onClick={stopRecording}
+                      disabled={isAnalyzing}
+                      className="bg-red-500 hover:bg-red-600"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Square className="w-5 h-5 mr-2" />
+                          Stop & Analyze
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={stopVoice}
+                      disabled={isAnalyzing}
+                    >
+                      Stop Voice
+                    </Button>
+                  </>
                 )}
               </div>
               
@@ -193,7 +235,7 @@ const VoiceEmotion = () => {
                 {isAnalyzing
                   ? "Analyzing your emotion..."
                   : isRecording
-                  ? "Click to stop recording"
+                  ? "Recording in progress..."
                   : "Click to start recording"}
               </p>
 
