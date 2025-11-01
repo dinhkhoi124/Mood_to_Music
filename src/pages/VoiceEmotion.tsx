@@ -36,15 +36,19 @@ const VoiceEmotion = () => {
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        stream.getTracks().forEach((track) => track.stop());
         await analyzeEmotion(audioBlob);
       };
 
-      mediaRecorder.start();
+      // Start recording with timeslice to ensure ondataavailable fires
+      mediaRecorder.start(100);
       setIsRecording(true);
       toast.success("Recording started");
     } catch (error) {
@@ -54,13 +58,24 @@ const VoiceEmotion = () => {
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
       setIsRecording(false);
       toast.info("Recording stopped, analyzing...");
     }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+        if (mediaRecorderRef.current.stream) {
+          mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+        }
+      }
+    };
+  }, []);
 
   const analyzeEmotion = async (audioBlob?: Blob) => {
     setIsAnalyzing(true);
