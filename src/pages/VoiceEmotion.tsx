@@ -66,9 +66,24 @@ const VoiceEmotion = () => {
     setIsAnalyzing(true);
     
     try {
-      // Call mock emotion detection API
+      let audioData = "mock";
+      
+      // Convert audio blob to base64 if provided
+      if (audioBlob) {
+        const reader = new FileReader();
+        audioData = await new Promise((resolve, reject) => {
+          reader.onloadend = () => {
+            const base64 = reader.result as string;
+            resolve(base64.split(',')[1]); // Remove data:audio/webm;base64, prefix
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(audioBlob);
+        });
+      }
+
+      // Call emotion detection API
       const { data, error } = await supabase.functions.invoke("predict-voice-emotion", {
-        body: { audioData: "mock" },
+        body: { audioData },
       });
 
       if (error) throw error;
@@ -138,28 +153,32 @@ const VoiceEmotion = () => {
               <div className="relative">
                 <Button
                   size="lg"
-                  className={`w-32 h-32 rounded-full ${isRecording ? 'animate-pulse' : ''}`}
+                  className={`w-32 h-32 rounded-full transition-colors ${
+                    isRecording 
+                      ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={isAnalyzing}
                 >
                   {isAnalyzing ? (
-                    <Loader2 className="w-12 h-12 animate-spin" />
+                    <Loader2 className="w-12 h-12 animate-spin text-white" />
                   ) : isRecording ? (
-                    <Square className="w-12 h-12" />
+                    <Square className="w-12 h-12 text-white" />
                   ) : (
-                    <Mic className="w-12 h-12" />
+                    <Mic className="w-12 h-12 text-white" />
                   )}
                 </Button>
                 {isRecording && (
-                  <div className="absolute -inset-2 rounded-full border-4 border-primary animate-ping" />
+                  <div className="absolute -inset-2 rounded-full border-4 border-red-500 animate-ping" />
                 )}
               </div>
               
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-medium">
                 {isAnalyzing
                   ? "Analyzing your emotion..."
                   : isRecording
-                  ? "Recording... Click to stop"
+                  ? "Click to stop recording"
                   : "Click to start recording"}
               </p>
 
