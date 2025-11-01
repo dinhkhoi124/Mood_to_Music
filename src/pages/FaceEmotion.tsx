@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Loader2, Music } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Camera, Loader2, Music, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -99,6 +101,54 @@ const FaceEmotion = () => {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload an image file (.jpg or .png)");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    toast.info("Analyzing uploaded image...");
+
+    try {
+      // Call mock emotion detection API
+      const { data, error } = await supabase.functions.invoke("predict-face-emotion", {
+        body: { imageData: "mock" },
+      });
+
+      if (error) throw error;
+
+      const detectedEmotion = data.emotion;
+      const recommendedSong = data.song;
+
+      setEmotion(detectedEmotion);
+      setSong(recommendedSong);
+
+      // Save to history
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("emotion_history").insert({
+          user_id: user.id,
+          emotion_type: detectedEmotion,
+          confidence: data.confidence || 0.82,
+          source: "face",
+          song_title: recommendedSong.title,
+          song_artist: recommendedSong.artist,
+        });
+      }
+
+      toast.success("Analysis complete!");
+    } catch (error) {
+      console.error("Error analyzing emotion:", error);
+      toast.error("Failed to analyze emotion");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -116,7 +166,7 @@ const FaceEmotion = () => {
             <CardHeader>
               <CardTitle>Capture Your Expression</CardTitle>
               <CardDescription>
-                Enable your camera and capture a photo to analyze your emotion
+                Use your webcam or upload an image file to analyze your emotion
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-6">
@@ -169,6 +219,28 @@ const FaceEmotion = () => {
                     </Button>
                   </>
                 )}
+              </div>
+
+              <div className="w-full border-t pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="image-upload" className="text-base font-semibold">
+                    Or Upload Image File
+                  </Label>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={handleFileUpload}
+                      disabled={isAnalyzing || isStreaming}
+                      className="cursor-pointer"
+                    />
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Supported formats: .jpg, .png
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

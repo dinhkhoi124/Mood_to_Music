@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mic, Square, Loader2, Music } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Mic, Square, Loader2, Music, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -60,7 +62,7 @@ const VoiceEmotion = () => {
     }
   };
 
-  const analyzeEmotion = async (audioBlob: Blob) => {
+  const analyzeEmotion = async (audioBlob?: Blob) => {
     setIsAnalyzing(true);
     
     try {
@@ -99,6 +101,19 @@ const VoiceEmotion = () => {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.wav')) {
+      toast.error("Please upload a .wav file");
+      return;
+    }
+
+    toast.info("Analyzing uploaded audio...");
+    await analyzeEmotion();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -116,7 +131,7 @@ const VoiceEmotion = () => {
             <CardHeader>
               <CardTitle>Record Your Voice</CardTitle>
               <CardDescription>
-                Click the button below to start recording. Speak for at least 3 seconds.
+                Record your voice or upload a .wav file to analyze your emotion
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-6">
@@ -147,6 +162,28 @@ const VoiceEmotion = () => {
                   ? "Recording... Click to stop"
                   : "Click to start recording"}
               </p>
+
+              <div className="w-full border-t pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="audio-upload" className="text-base font-semibold">
+                    Or Upload Audio File
+                  </Label>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="audio-upload"
+                      type="file"
+                      accept=".wav"
+                      onChange={handleFileUpload}
+                      disabled={isAnalyzing || isRecording}
+                      className="cursor-pointer"
+                    />
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Supported format: .wav files only
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
