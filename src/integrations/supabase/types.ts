@@ -50,6 +50,107 @@ export type Database = {
         }
         Relationships: []
       }
+      emotion_song_mapping: {
+        Row: {
+          created_at: string
+          emotion_type: string
+          id: string
+          song_id: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          emotion_type: string
+          id?: string
+          song_id: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          emotion_type?: string
+          id?: string
+          song_id?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emotion_song_mapping_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlist_songs: {
+        Row: {
+          added_at: string
+          id: string
+          playlist_id: string
+          position: number
+          song_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          playlist_id: string
+          position?: number
+          song_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          song_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_songs_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_songs_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -71,6 +172,138 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      recommendation_feedback: {
+        Row: {
+          created_at: string
+          emotion_history_id: string | null
+          feedback_text: string | null
+          id: string
+          rating: number | null
+          song_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emotion_history_id?: string | null
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          song_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emotion_history_id?: string | null
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          song_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_feedback_emotion_history_id_fkey"
+            columns: ["emotion_history_id"]
+            isOneToOne: false
+            referencedRelation: "emotion_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_feedback_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      songs: {
+        Row: {
+          album: string | null
+          artist: string
+          created_at: string
+          duration_ms: number | null
+          energy: number | null
+          genre: string | null
+          id: string
+          popularity: number | null
+          preview_url: string | null
+          spotify_url: string | null
+          tempo: number | null
+          title: string
+          updated_at: string
+          valence: number | null
+          youtube_url: string | null
+        }
+        Insert: {
+          album?: string | null
+          artist: string
+          created_at?: string
+          duration_ms?: number | null
+          energy?: number | null
+          genre?: string | null
+          id?: string
+          popularity?: number | null
+          preview_url?: string | null
+          spotify_url?: string | null
+          tempo?: number | null
+          title: string
+          updated_at?: string
+          valence?: number | null
+          youtube_url?: string | null
+        }
+        Update: {
+          album?: string | null
+          artist?: string
+          created_at?: string
+          duration_ms?: number | null
+          energy?: number | null
+          genre?: string | null
+          id?: string
+          popularity?: number | null
+          preview_url?: string | null
+          spotify_url?: string | null
+          tempo?: number | null
+          title?: string
+          updated_at?: string
+          valence?: number | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          favorite_genres: string[] | null
+          id: string
+          language_preference: string | null
+          preferred_energy: number | null
+          preferred_tempo: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          favorite_genres?: string[] | null
+          id?: string
+          language_preference?: string | null
+          preferred_energy?: number | null
+          preferred_tempo?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          favorite_genres?: string[] | null
+          id?: string
+          language_preference?: string | null
+          preferred_energy?: number | null
+          preferred_tempo?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
