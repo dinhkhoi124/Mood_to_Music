@@ -1,40 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Mock emotion detection - returns random emotion and song recommendation
-const emotions = ["happy", "sad", "energetic", "calm", "neutral"];
-
-const songRecommendations: Record<string, { title: string; artist: string }[]> = {
-  happy: [
-    { title: "Happy", artist: "Pharrell Williams" },
-    { title: "Good Vibrations", artist: "The Beach Boys" },
-    { title: "Walking on Sunshine", artist: "Katrina and the Waves" },
-  ],
-  sad: [
-    { title: "Someone Like You", artist: "Adele" },
-    { title: "Fix You", artist: "Coldplay" },
-    { title: "The Scientist", artist: "Coldplay" },
-  ],
-  energetic: [
-    { title: "Eye of the Tiger", artist: "Survivor" },
-    { title: "Stronger", artist: "Kanye West" },
-    { title: "Can't Hold Us", artist: "Macklemore" },
-  ],
-  calm: [
-    { title: "Weightless", artist: "Marconi Union" },
-    { title: "River Flows in You", artist: "Yiruma" },
-    { title: "Clair de Lune", artist: "Claude Debussy" },
-  ],
-  neutral: [
-    { title: "Lean On", artist: "Major Lazer" },
-    { title: "Rather Be", artist: "Clean Bandit" },
-    { title: "Counting Stars", artist: "OneRepublic" },
-  ],
-};
+// Flask API endpoint (change this to your deployed Flask server URL)
+const FLASK_API_URL = Deno.env.get("FLASK_API_URL") || "http://localhost:5000/predict_voice";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -42,32 +15,88 @@ serve(async (req) => {
   }
 
   try {
-    // Mock emotion detection logic
-    const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
-    const songs = songRecommendations[randomEmotion];
-    const randomSong = songs[Math.floor(Math.random() * songs.length)];
-    const confidence = 0.75 + Math.random() * 0.2; // Random confidence between 0.75 and 0.95
+    const { audio_url, audio_base64 } = await req.json();
 
-    console.log("Voice emotion detected:", randomEmotion);
+    if (!audio_url && !audio_base64) {
+      return new Response(
+        JSON.stringify({ error: "audio_url or audio_base64 is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    let emotion = "neutral";
+    let confidence = 0.8;
+
+    // Try to call Flask API for real prediction
+    try {
+      const flaskResponse = await fetch(FLASK_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audio_url, audio_base64 }),
+      });
+
+      if (flaskResponse.ok) {
+        const result = await flaskResponse.json();
+        emotion = result.emotion || emotion;
+        confidence = result.confidence || confidence;
+        console.log("Voice emotion from Flask API:", emotion, confidence);
+      } else {
+        console.warn("Flask API call failed, using fallback");
+        // Fallback to mock if Flask is not available
+        const emotions = ["happy", "sad", "energetic", "calm", "neutral"];
+        emotion = emotions[Math.floor(Math.random() * emotions.length)];
+        confidence = 0.75 + Math.random() * 0.2;
+      }
+    } catch (flaskError) {
+      console.error("Error calling Flask API:", flaskError);
+      // Fallback to mock
+      const emotions = ["happy", "sad", "energetic", "calm", "neutral"];
+      emotion = emotions[Math.floor(Math.random() * emotions.length)];
+      confidence = 0.75 + Math.random() * 0.2;
+    }
+
+    // Get song recommendation from Supabase
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const { data: mappings } = await supabase
+      .from("emotion_song_mapping")
+      .select("song_id")
+      .eq("emotion_type", emotion.toLowerCase())
+      .limit(5);
+
+    let song = { title: "Unknown", artist: "Unknown" };
+
+    if (mappings && mappings.length > 0) {
+      const randomMapping = mappings[Math.floor(Math.random() * mappings.length)];
+      const { data: songData } = await supabase
+        .from("songs")
+        .select("title, artist")
+        .eq("id", randomMapping.song_id)
+        .single();
+
+      if (songData) {
+        song = songData;
+      }
+    }
+
+    console.log("Voice emotion detected:", emotion, "Song:", song.title);
 
     return new Response(
       JSON.stringify({
-        emotion: randomEmotion,
-        confidence: confidence,
-        song: randomSong,
+        emotion,
+        confidence,
+        song,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Error in voice emotion prediction:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -1,1 +1,25 @@
 project_id = "lpwydvsydvwlqluvxwei"
+
+[functions.register]
+verify_jwt = false
+
+[functions.login]
+verify_jwt = false
+
+[functions.user-profile]
+verify_jwt = true
+
+[functions.music]
+verify_jwt = false
+
+[functions.predict-voice-emotion]
+verify_jwt = false
+
+[functions.predict-face-emotion]
+verify_jwt = false
+
+[functions.history]
+verify_jwt = true
+
+[functions.recommend-song]
+verify_jwt = false
