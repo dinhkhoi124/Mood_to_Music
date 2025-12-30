@@ -1,6 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Music, LayoutDashboard, Mic, Camera, History, User, LogOut, Sparkles } from "lucide-react";
+import {
+  Music,
+  LayoutDashboard,
+  Mic,
+  Camera,
+  History,
+  User,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -33,9 +42,19 @@ const Navigation = () => {
           <Link to="/dashboard" className="flex items-center gap-2 group">
             <Music className="w-6 h-6 text-primary transition-transform group-hover:scale-110" />
             <Sparkles className="w-4 h-4 text-accent" />
-            <span className="font-bold text-xl bg-gradient-emotion bg-clip-text text-transparent">
-              Mood2Music
-            </span>
+
+            {/* PHẦN ĐÃ CHỈNH SỬA: Tăng kích thước logo lên h-8 và thêm ml-1 */}
+            <div className="flex items-center">
+              <span className="font-bold text-xl bg-gradient-emotion bg-clip-text text-transparent mr-2">
+                Mood2Music
+              </span>
+              <img
+                src="/logo_fpt.png"
+                alt="FPT Logo"
+                className="h-9 ml-2 object-contain" // Đã thay đổi h-6 thành h-8 và thêm ml-1
+              />
+            </div>
+            {/* KẾT THÚC PHẦN CHỈNH SỬA */}
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -57,7 +76,12 @@ const Navigation = () => {
             })}
           </div>
 
-          <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="gap-2"
+          >
             <LogOut className="w-4 h-4" />
             Logout
           </Button>

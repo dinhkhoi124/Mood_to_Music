@@ -1,0 +1,10 @@
+flask
+flask-cors
+tensorflow
+mediapipe
+numpy
+opencv-python
+requests
+librosa
+soundfile
+moviepy

@@ -1,32 +1,49 @@
+// File: Frontend/pages/History.tsx - Đã sửa lỗi hiển thị thập phân
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Mic, Camera, Music, Trash2 } from "lucide-react";
+import { Mic, Camera, Music, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+// Kiểu dữ liệu cho lịch sử
+interface HistoryEntry {
+  id: string;
+  emotion_type: string;
+  confidence: number;
+  source: string;
+  created_at: string;
+  song_title: string | null;
+  song_artist: string | null;
+}
+
 const History = () => {
   const navigate = useNavigate();
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+
       if (!session) {
         navigate("/auth");
         return;
       }
+
       await fetchHistory();
     };
+
     checkUser();
   }, [navigate]);
 
   const fetchHistory = async () => {
     setLoading(true);
+
     const { data, error } = await supabase
       .from("emotion_history")
       .select("*")
@@ -38,6 +55,7 @@ const History = () => {
     } else {
       setHistory(data || []);
     }
+
     setLoading(false);
   };
 
@@ -51,7 +69,7 @@ const History = () => {
       toast.error("Failed to delete entry");
     } else {
       toast.success("Entry deleted");
-      setHistory(history.filter((item) => item.id !== id));
+      setHistory((prev) => prev.filter((item) => item.id !== id));
     }
   };
 
@@ -63,6 +81,7 @@ const History = () => {
       calm: "bg-emotion-calm",
       neutral: "bg-emotion-neutral",
     };
+
     return colors[emotion.toLowerCase()] || "bg-primary";
   };
 
@@ -80,7 +99,7 @@ const History = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-emotion bg-clip-text text-transparent">
@@ -113,6 +132,7 @@ const History = () => {
                       ) : (
                         <Camera className="w-5 h-5 text-secondary" />
                       )}
+
                       <div>
                         <CardTitle className="capitalize">{entry.emotion_type}</CardTitle>
                         <CardDescription>
@@ -120,10 +140,12 @@ const History = () => {
                         </CardDescription>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-2">
                       <Badge className={getEmotionColor(entry.emotion_type)}>
-                        {(entry.confidence * 100).toFixed(0)}% confidence
+                        {entry.confidence.toFixed(1)}% confidence
                       </Badge>
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -134,13 +156,26 @@ const History = () => {
                     </div>
                   </div>
                 </CardHeader>
+
                 {entry.song_title && (
                   <CardContent>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Music className="w-4 h-4" />
                       <span className="font-medium">{entry.song_title}</span>
                       <span>•</span>
-                      <span>{entry.song_artist}</span>
+
+                      {entry.song_artist && entry.song_artist.startsWith("http") ? (
+                        <a
+                          href={entry.song_artist}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline flex items-center gap-1"
+                        >
+                          Open Link <ExternalLink className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <span>{entry.song_artist}</span>
+                      )}
                     </div>
                   </CardContent>
                 )}

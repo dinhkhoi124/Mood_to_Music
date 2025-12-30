@@ -9,7 +9,9 @@ const Index = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         navigate("/dashboard");
       }
@@ -22,18 +24,28 @@ const Index = () => {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-center gap-3 mb-6">
             <Music className="w-16 h-16 text-primary animate-pulse" />
             <Sparkles className="w-8 h-8 text-accent" />
           </div>
-          
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-emotion bg-clip-text text-transparent">
-            Mood2Music
-          </h1>
-          
+
+          {/* LOGO CHÍNH VÀ LOGO MỚI ĐƯỢC CHÈN Ở ĐÂY */}
+          <div className="flex items-center justify-center mb-6">
+            <h1 className="text-6xl md:text-7xl font-bold bg-gradient-emotion bg-clip-text text-transparent mr-4">
+              Mood2Music
+            </h1>
+            <img
+              src="/logo_fpt.png"
+              alt="FPT Logo"
+              className="h-16 md:h-20 object-contain" // Điều chỉnh kích thước logo FPT
+            />
+          </div>
+          {/* KẾT THÚC PHẦN CHÈN LOGO */}
+
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl">
-            Discover music that perfectly matches your emotions. 
-            Analyze your mood through voice or facial expressions and get personalized song recommendations.
+            Discover music that perfectly matches your emotions. Analyze your
+            mood through voice or facial expressions and get personalized song
+            recommendations.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
@@ -61,7 +73,8 @@ const Index = () => {
               <Mic className="w-12 h-12 text-primary mb-4 mx-auto" />
               <h3 className="text-xl font-semibold mb-3">Voice Analysis</h3>
               <p className="text-muted-foreground">
-                Speak your feelings and let our AI detect your emotional state through voice patterns
+                Speak your feelings and let our AI detect your emotional state
+                through voice patterns
               </p>
             </div>
 
@@ -69,7 +82,8 @@ const Index = () => {
               <Camera className="w-12 h-12 text-secondary mb-4 mx-auto" />
               <h3 className="text-xl font-semibold mb-3">Face Detection</h3>
               <p className="text-muted-foreground">
-                Show your face and we'll analyze your expressions to understand your mood
+                Show your face and we'll analyze your expressions to understand
+                your mood
               </p>
             </div>
 
@@ -77,7 +91,8 @@ const Index = () => {
               <TrendingUp className="w-12 h-12 text-accent mb-4 mx-auto" />
               <h3 className="text-xl font-semibold mb-3">Mood Tracking</h3>
               <p className="text-muted-foreground">
-                Track your emotional patterns over time with beautiful charts and insights
+                Track your emotional patterns over time with beautiful charts
+                and insights
               </p>
             </div>
           </div>

@@ -1,73 +1,83 @@
-# Welcome to your Lovable project
+# 🛠️ HƯỚNG DẪN THIẾT LẬP MÔI TRƯỜNG DỰ ÁN (WINDOWS)
 
-## Project info
+Tài liệu này hướng dẫn cách cài đặt công cụ cần thiết (FFmpeg) và kích hoạt môi trường ảo Python (`venv`) để chạy Backend (Flask) của dự án.
 
-**URL**: https://lovable.dev/projects/78c11867-91fd-4277-a8d2-2685b56e3d8a
+---
 
-## How can I edit this code?
+## 1. 🎵 Cài Đặt FFmpeg và Thêm vào PATH
 
-There are several ways of editing your application.
+FFmpeg là công cụ bắt buộc để Backend có thể chuyển đổi file âm thanh WebM sang WAV cho quá trình phân tích giọng nói.
 
-**Use Lovable**
+### Phương pháp 1: Thêm vào System PATH (Khuyến nghị)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/78c11867-91fd-4277-a8d2-2685b56e3d8a) and start prompting.
+Đây là phương pháp sạch sẽ và dễ quản lý nhất.
 
-Changes made via Lovable will be committed automatically to this repo.
+1.  **Tải FFmpeg:**
 
-**Use your preferred IDE**
+    - Tru cập trang web chính thức hoặc nguồn uy tín (ví dụ: Bản dựng của Gyan) để tải xuống phiên bản nén **`ffmpeg-*-full_build.zip`** cho Windows.
+    - Giải nén file ZIP.
+    - Đổi tên thư mục giải nén thành **`ffmpeg`** và di chuyển nó đến một vị trí cố định, dễ tìm, ví dụ: **`C:\ffmpeg`**.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2.  **Thêm vào Biến Môi trường PATH:**
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+    - Nhấn `Windows` và gõ **"environment"**, sau đó chọn **"Edit the system environment variables"**.
+    - Trong cửa sổ System Properties, chọn tab **Advanced**.
+    - Nhấn nút **Environment Variables**.
+    - Trong phần **System variables**, tìm và chọn biến **`Path`**, sau đó nhấn **Edit**.
+    - Nhấn **New** và thêm đường dẫn đến thư mục **`bin`** bên trong thư mục FFmpeg của bạn:
+      > **`C:\ffmpeg\bin`**
+    - Nhấn **OK** để đóng tất cả cửa sổ.
 
-Follow these steps:
+3.  **Kiểm tra trong VS Code Terminal:**
+    - **Bắt buộc:** Đóng hoàn toàn và mở lại **Terminal** trong VS Code.
+    - Gõ lệnh:
+      ```bash
+      ffmpeg -version
+      ```
+    - Nếu hiển thị thông tin phiên bản, quá trình cài đặt đã thành công.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Phương pháp 2: Thêm vào PATH của Môi trường Ảo (Tùy chọn)
 
-# Step 3: Install the necessary dependencies.
-npm i
+Sử dụng khi bạn muốn giới hạn FFmpeg chỉ hoạt động trong môi trường ảo của dự án.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+1.  **Cài đặt FFmpeg:** Thực hiện Bước 1 trong Phương pháp 1 (Tải và đặt ở `C:\ffmpeg\bin`).
 
-**Edit a file directly in GitHub**
+2.  **Chỉnh sửa file kích hoạt:**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+    - Mở file **`venv\Scripts\activate.bat`** (cho CMD Terminal) hoặc **`venv\Scripts\activate.ps1`** (cho PowerShell Terminal) bằng VS Code.
+    - Thêm đường dẫn đến FFmpeg vào biến PATH của môi trường ảo:
 
-**Use GitHub Codespaces**
+    **a) Cho `activate.bat` (CMD/Command Prompt):**
+    Thêm hai dòng sau **trước** dòng `set "PATH=%VIRTUAL_ENV%\Scripts;%PATH%"`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+    ```bat
+    :: Thêm đường dẫn tới thư mục bin của FFmpeg
+    set "FFMPEG_PATH=C:\ffmpeg\bin"
+    set "PATH=%FFMPEG_PATH%;%PATH%"
+    ```
 
-## What technologies are used for this project?
+    **b) Cho `activate.ps1` (PowerShell):**
+    Thêm các dòng sau vào phần đầu file.
 
-This project is built with:
+    ```powershell
+    # Thêm đường dẫn tới thư mục bin của FFmpeg
+    $ffmpegPath = "C:\ffmpeg\bin"
+    $env:Path = "$ffmpegPath;$env:Path"
+    ```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3.  **Kích hoạt và Kiểm tra:** Mở Terminal mới, kích hoạt `venv` và chạy `ffmpeg -version`.
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/78c11867-91fd-4277-a8d2-2685b56e3d8a) and click on Share -> Publish.
+## 2. 💻 Kích Hoạt Môi Trường Ảo (`venv`)
 
-## Can I connect a custom domain to my Lovable project?
+Sau khi FFmpeg đã sẵn sàng, bạn cần kích hoạt môi trường ảo để chạy Backend Python.
 
-Yes, you can!
+| Terminal trong VS Code   | Lệnh Kích hoạt                | Xử lý Lỗi thường gặp                                                                                                                                      |
+| :----------------------- | :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Command Prompt (CMD)** | `venv\Scripts\activate.bat`   | Rất hiếm khi gặp lỗi.                                                                                                                                     |
+| **PowerShell**           | `.\venv\Scripts\activate.ps1` | **Nếu gặp lỗi bảo mật:** Chạy `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process` trong cửa sổ PowerShell. Sau đó chạy lại lệnh kích hoạt. |
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Ghi chú:** Khi môi trường ảo được kích hoạt thành công, bạn sẽ thấy **`(venv)`** ở đầu dòng lệnh.
