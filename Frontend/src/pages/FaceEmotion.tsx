@@ -24,7 +24,7 @@ import {
   ExternalLink,
   Volume2,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
   predictFaceEmotion,
@@ -69,24 +69,27 @@ function speakMessage(message: string) {
       let selectedVoice: SpeechSynthesisVoice | undefined;
 
       selectedVoice = voices.find(
-        (voice) =>
-          voice.lang === "vi-VN" &&
-          (voice.name.includes("Female") ||
-            voice.name.includes("Hồng") ||
-            voice.name.includes("Nữ") ||
-            voice.default)
+        (v) =>
+          v.lang.toLowerCase().includes("vi") &&
+          (v.name.includes("HoaiMy") ||
+            v.name.includes("An") ||
+            v.name.includes("Google") ||
+            v.name.includes("Female") ||
+            v.name.includes("Hồng") ||
+            v.name.includes("Nữ") ||
+            v.default)
       );
 
       if (!selectedVoice) {
-        selectedVoice = voices.find((voice) => voice.lang === "vi-VN");
+        selectedVoice = voices.find((v) => v.lang.toLowerCase().includes("vi"));
       }
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       } else {
-        utterance.lang = "vi-VN";
         toast.warning("TTS: Không tìm thấy giọng Việt.");
       }
+      utterance.lang = "vi-VN";
 
       utterance.rate = 1.0;
       synthesis.speak(utterance);
@@ -178,10 +181,8 @@ const FaceEmotion = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) navigate("/auth");
+      const user = api.getUser();
+      if (!user) navigate("/auth");
     };
     checkUser();
 
@@ -254,26 +255,7 @@ const FaceEmotion = () => {
           );
         }
 
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const randomSong =
-            result.music_suggestions?.[
-              Math.floor(Math.random() * result.music_suggestions.length)
-            ] || null;
-
-          await supabase.from("emotion_history").insert({
-            user_id: user.id,
-            emotion_type: top.emotion,
-            confidence: top.confidence,
-            source: "face",
-            song_title: randomSong?.title || null,
-            song_artist: randomSong?.video_id
-              ? `https://youtube.com/watch?v=${randomSong.video_id}`
-              : null,
-          });
-        }
+        // Lịch sử emotion đã được lưu ở backend `predict_face` cùng với user_id thông qua auth token.
 
         toast.success("Analysis complete!");
       } else {

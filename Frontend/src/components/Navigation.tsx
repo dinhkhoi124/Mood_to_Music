@@ -10,7 +10,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const Navigation = () => {
@@ -18,13 +18,9 @@ const Navigation = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Failed to logout");
-    } else {
-      toast.success("Logged out successfully");
-      navigate("/");
-    }
+    api.clearToken();
+    toast.success("Logged out successfully");
+    navigate("/");
   };
 
   const navItems = [

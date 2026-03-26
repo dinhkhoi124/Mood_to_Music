@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Mic, Camera, Music, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -28,9 +28,9 @@ const History = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const user = api.getUser();
 
-      if (!session) {
+      if (!user) {
         navigate("/auth");
         return;
       }
@@ -43,33 +43,24 @@ const History = () => {
 
   const fetchHistory = async () => {
     setLoading(true);
-
-    const { data, error } = await supabase
-      .from("emotion_history")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
+    try {
+      const data = await api.get("/emotion_history");
+      setHistory(data || []);
+    } catch (error) {
       console.error("Error fetching history:", error);
       toast.error("Failed to load history");
-    } else {
-      setHistory(data || []);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const deleteEntry = async (id: string) => {
-    const { error } = await supabase
-      .from("emotion_history")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast.error("Failed to delete entry");
-    } else {
+    try {
+      await api.delete(`/emotion_history/${id}`);
       toast.success("Entry deleted");
       setHistory((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      toast.error("Failed to delete entry");
     }
   };
 

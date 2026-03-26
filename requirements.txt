@@ -8,3 +8,8 @@ requests
 librosa
 soundfile
 moviepy
+psycopg2-binary
+python-dotenv
+h5py
+PyJWT
+bcrypt

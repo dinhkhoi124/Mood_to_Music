@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { User } from "lucide-react";
 
@@ -20,8 +20,8 @@ const Profile = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const user = api.getUser();
+      if (!user) {
         navigate("/auth");
         return;
       }
@@ -33,20 +33,14 @@ const Profile = () => {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = api.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
+      const data = await api.get("/user/profile");
 
       setProfile({
         full_name: data.full_name || "",
-        email: user.email || "",
+        email: data.email || "",
       });
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -61,17 +55,15 @@ const Profile = () => {
     setSaving(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = api.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: profile.full_name,
-        })
-        .eq("id", user.id);
+      await api.put("/user/profile", {
+        full_name: profile.full_name,
+      });
 
-      if (error) throw error;
+      user.full_name = profile.full_name;
+      api.setUser(user);
 
       toast.success("Profile updated successfully");
     } catch (error: any) {

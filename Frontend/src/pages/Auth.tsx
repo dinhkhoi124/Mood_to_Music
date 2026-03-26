@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,19 +20,10 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    const user = api.getUser();
+    if (user) {
+      navigate("/dashboard");
+    }
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,12 +31,9 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      const { token, user } = await api.post('/auth/login', { email, password });
+      api.setToken(token);
+      api.setUser(user);
       toast.success("Welcome back!");
       navigate("/dashboard");
     } catch (error: any) {
@@ -60,18 +48,9 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-
-      if (error) throw error;
+      const { token, user } = await api.post('/auth/register', { email, password, full_name: fullName });
+      api.setToken(token);
+      api.setUser(user);
       toast.success("Account created! Welcome to Mood2Music 🎵");
       navigate("/dashboard");
     } catch (error: any) {

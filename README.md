@@ -13,13 +13,11 @@ FFmpeg là công cụ bắt buộc để Backend có thể chuyển đổi file 
 Đây là phương pháp sạch sẽ và dễ quản lý nhất.
 
 1.  **Tải FFmpeg:**
-
     - Tru cập trang web chính thức hoặc nguồn uy tín (ví dụ: Bản dựng của Gyan) để tải xuống phiên bản nén **`ffmpeg-*-full_build.zip`** cho Windows.
     - Giải nén file ZIP.
     - Đổi tên thư mục giải nén thành **`ffmpeg`** và di chuyển nó đến một vị trí cố định, dễ tìm, ví dụ: **`C:\ffmpeg`**.
 
 2.  **Thêm vào Biến Môi trường PATH:**
-
     - Nhấn `Windows` và gõ **"environment"**, sau đó chọn **"Edit the system environment variables"**.
     - Trong cửa sổ System Properties, chọn tab **Advanced**.
     - Nhấn nút **Environment Variables**.
@@ -45,7 +43,6 @@ Sử dụng khi bạn muốn giới hạn FFmpeg chỉ hoạt động trong môi
 1.  **Cài đặt FFmpeg:** Thực hiện Bước 1 trong Phương pháp 1 (Tải và đặt ở `C:\ffmpeg\bin`).
 
 2.  **Chỉnh sửa file kích hoạt:**
-
     - Mở file **`venv\Scripts\activate.bat`** (cho CMD Terminal) hoặc **`venv\Scripts\activate.ps1`** (cho PowerShell Terminal) bằng VS Code.
     - Thêm đường dẫn đến FFmpeg vào biến PATH của môi trường ảo:
 

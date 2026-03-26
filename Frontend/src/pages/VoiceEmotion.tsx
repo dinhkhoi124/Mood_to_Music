@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mic, Square, Loader2, Music, Upload, Volume2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 // Khai báo global cho YouTube API
@@ -74,18 +74,23 @@ function speakMessage(message: string) {
   const setVoice = () => {
     const voices = synthesis.getVoices();
     let selectedVoice = voices.find(
-      (voice) =>
-        voice.lang === "vi-VN" &&
-        (voice.name.includes("Female") ||
-          voice.name.includes("Hồng") ||
-          voice.name.includes("Nữ") ||
-          voice.default)
+      (v) =>
+        v.lang.toLowerCase().includes("vi") &&
+        (v.name.includes("HoaiMy") ||
+          v.name.includes("An") ||
+          v.name.includes("Google") ||
+          v.name.includes("Female") ||
+          v.name.includes("Hồng") ||
+          v.name.includes("Nữ") ||
+          v.default)
     );
     if (!selectedVoice)
-      selectedVoice = voices.find((voice) => voice.lang === "vi-VN");
+      selectedVoice = voices.find((v) => v.lang.toLowerCase().includes("vi"));
 
-    if (selectedVoice) utterance.voice = selectedVoice;
-    else utterance.lang = "vi-VN";
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    utterance.lang = "vi-VN";
 
     utterance.rate = 1.0;
     synthesis.speak(utterance);
@@ -154,8 +159,8 @@ const VoiceEmotion = () => {
   // =============================================================
   useEffect(() => {
     const checkUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) navigate("/auth");
+      const user = api.getUser();
+      if (!user) navigate("/auth");
     };
     checkUser();
 
@@ -290,25 +295,8 @@ const VoiceEmotion = () => {
       if (data.music_suggestions?.length > 0)
         playSuggestedMusic(data.music_suggestions, setCurrentPlayingVideoId);
 
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (user) {
-        const randomSong =
-          data.music_suggestions[
-            Math.floor(Math.random() * data.music_suggestions.length)
-          ];
-        const songUrl = randomSong?.video_id
-          ? `https://youtube.com/watch?v=${randomSong.video_id}`
-          : randomSong?.url || "N/A";
-        await supabase.from("emotion_history").insert({
-          user_id: user.id,
-          emotion_type: data.predictions[0].emotion,
-          confidence: data.predictions[0].confidence,
-          source: "voice",
-          song_title: randomSong?.title || "No song",
-          song_artist: songUrl,
-        });
-      }
+      // Emotion history will be recorded by the backend predict_voice endpoint if the user provides the JWT token
+      // We assume backend handles saving logic.
 
       toast.success("Analysis complete!");
     } catch (err: any) {

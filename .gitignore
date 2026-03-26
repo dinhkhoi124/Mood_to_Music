@@ -1,5 +1,6 @@
 # Python
 .venv/
+venv/
 __pycache__/
 *.pyc
 
@@ -10,6 +11,7 @@ __pycache__/
 Backend/temp/
 Backend/tmp/
 Backend/image/
+Backend/debug_*.json
 received_image.jpg
 
 # Node
@@ -23,6 +25,15 @@ node_modules/
 
 # OS
 .DS_Store
+
+# User requested ignores
+notebook/
+Backend/check_error.py
+Backend/fix_db.py
+Backend/fix_db2.py
+Backend/test_*.py
+.env.example
+Frontend/.env.example
 
 
 # # Logs

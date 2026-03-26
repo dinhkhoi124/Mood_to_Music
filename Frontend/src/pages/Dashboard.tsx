@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -15,8 +15,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const user = api.getUser();
+      if (!user) {
         navigate("/auth");
         return;
       }
@@ -28,40 +28,38 @@ const Dashboard = () => {
   }, [navigate]);
 
   const fetchEmotionData = async () => {
-    const { data, error } = await supabase
-      .from("emotion_history")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
+    try {
+      const data = await api.get("/emotion_history");
+      // data is already sorted by created_at desc from backend. We just slice 50.
+      const slicedData = data.slice(0, 50);
 
-    if (error) {
+      // Process data for chart
+      const emotionCounts = slicedData.reduce((acc: any, entry: any) => {
+        acc[entry.emotion_type] = (acc[entry.emotion_type] || 0) + 1;
+        return acc;
+      }, {});
+
+      const chartData = Object.entries(emotionCounts).map(([emotion, count]) => ({
+        emotion,
+        count,
+      }));
+
+      setEmotionData(chartData);
+
+      // Calculate stats
+      const today = new Date().toDateString();
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      
+      setStats({
+        total: data.length, // total data length
+        today: data.filter((e: any) => new Date(e.created_at).toDateString() === today).length,
+        thisWeek: data.filter((e: any) => new Date(e.created_at) >= weekAgo).length,
+      });
+    } catch (error) {
       console.error("Error fetching emotion data:", error);
-      return;
     }
-
-    // Process data for chart
-    const emotionCounts = data.reduce((acc: any, entry: any) => {
-      acc[entry.emotion_type] = (acc[entry.emotion_type] || 0) + 1;
-      return acc;
-    }, {});
-
-    const chartData = Object.entries(emotionCounts).map(([emotion, count]) => ({
-      emotion,
-      count,
-    }));
-
-    setEmotionData(chartData);
-
-    // Calculate stats
-    const today = new Date().toDateString();
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
-    setStats({
-      total: data.length,
-      today: data.filter((e: any) => new Date(e.created_at).toDateString() === today).length,
-      thisWeek: data.filter((e: any) => new Date(e.created_at) >= weekAgo).length,
-    });
   };
+
 
   if (loading) {
     return (

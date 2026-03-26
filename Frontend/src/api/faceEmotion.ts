@@ -1,5 +1,5 @@
 // File: frontend/api/faceEmotion.ts
-
+import { api } from "@/lib/api";
 export interface EmotionPrediction {
   emotion: string;
   confidence: number;
@@ -20,8 +20,13 @@ export interface FaceEmotionResponse {
 export async function predictFaceEmotion(
   formData: FormData
 ): Promise<FaceEmotionResponse> {
+  const headers = api.getHeaders();
+  // Remove Content-Type since FormData automatically sets it with boundary
+  delete headers['Content-Type'];
+
   const res = await fetch("http://localhost:5001/predict_face", {
     method: "POST",
+    headers,
     body: formData,
   });
   if (!res.ok) {
