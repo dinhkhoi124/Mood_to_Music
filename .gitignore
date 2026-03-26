@@ -34,6 +34,12 @@ Backend/fix_db2.py
 Backend/test_*.py
 .env.example
 Frontend/.env.example
+API_DOCUMENTATION.md
+cachchay.txt
+Backend/app_v1.py
+Backend/app_v2.py
+Frontend/src/pages/face_emotion2_ex.tsx
+Frontend/src/pages/Index_orginal.tsx
 
 
 # # Logs
